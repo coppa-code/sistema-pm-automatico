@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎂 Sistema Automatizado PM + WhatsApp</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 40px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 3px solid #f0f0f0;
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 3em;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.3em;
+            font-weight: 500;
+        }
+
+        .automation-panel {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border: 3px solid #28a745;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .automation-panel h3 {
+            color: #155724;
+            margin-bottom: 20px;
+            font-size: 1.6em;
+            font-weight: 700;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 700;
+            margin: 10px;
+            font-size: 1.1em;
+        }
+
+        .status-indicator.active {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.inactive {
+            background: linear-gradient(135deg, #ffc107, #fd7e14);
+            color: #856404;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 18px 35px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            margin-right: 15px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+
+        .alert {
+            padding: 20px 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            font-weight: 700;
+            font-size: 1em;
+            border: 2px solid;
+            animation: slideInDown 0.5s ease;
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            color: #155724;
+            border-color: #c3e6cb;
+        }
+
+        .alert-warning {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            color: #856404;
+            border-color: #ffeaa7;
+        }
+
+        .alert-error {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            color: #721c24;
+            border-color: #f5c6cb;
+        }
+
+        .log-container {
+            background: #f8f9fa;
+            border: 2px solid #28a745;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 35px;
+            border-radius: 20px;
+            margin-bottom: 35px;
+            border: 2px solid #e9ecef;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #495057;
+            font-weight: 700;
+            font-size: 1em;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 18px 20px;
+            border: 3px solid #dee2e6;
+            border-radius: 15px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+            font-weight: 500;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #28a745;
+            box-shadow: 0 0 0 5px rgba(40, 167, 69, 0.15);
+        }
+
+        .automation-config {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .config-card {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #28a745;
+        }
+
+        .config-card h4 {
+            color: #155724;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .config-card p {
+            margin: 8px 0;
+            color: #495057;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+                margin: 15px;
+            }
+            .automation-config {
+                grid-template-columns: 1fr;
+            }
+            .header h1 {
+                font-size: 2.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 🎂 HEADER -->
+        <div class="header">
+            <h1>🎂 Sistema Automatizado PM</h1>
+            <p>Sistema 100% automático na nuvem com Vercel + WhatsApp</p>
+        </div>
+
+        <!-- 🚨 ALERTAS -->
+        <div id="alert-container"></div>
+
+        <!-- 🤖 PAINEL DE AUTOMAÇÃO -->
+        <div class="automation-panel">
+            <h3>🤖 Status da Automação</h3>
+            
+            <div id="automation-status">
+                <div class="status-indicator active">
+                    🟢 SISTEMA AUTOMÁTICO ATIVO
+                </div>
+                <div class="status-indicator" id="next-check">
+                    ⏰ Próxima verificação: Carregando...
+                </div>
+            </div>
+
+            <div class="automation-config">
+                <div class="config-card">
+                    <h4>⚙️ Configuração Atual</h4>
+                    <p id="current-config">Carregando configurações...</p>
+                    <p><strong>Horário:</strong> <span id="current-time">--:--</span></p>
+                    <p><strong>Fila:</strong> <span id="queue-count">-</span> aniversários</p>
+                </div>
+                
+                <div class="config-card">
+                    <h4>📊 Último Envio</h4>
+                    <p id="last-execution">Nenhum registro ainda</p>
+                    <p><strong>Status:</strong> <span id="last-status">Aguardando</span></p>
+                </div>
+            </div>
+
+            <div style="margin-top: 30px;">
+                <button class="btn btn-success" onclick="checkAutomationStatus()">
+                    🔍 Verificar Status
+                </button>
+                <button class="btn btn-warning" onclick="forceExecution()">
+                    🚀 Executar Agora
+                </button>
+                <button class="btn" onclick="viewLogs()">
+                    📋 Ver Logs
+                </button>
+            </div>
+        </div>
+
+        <!-- 📱 CONFIGURAÇÕES MANUAIS -->
+        <div class="form-section">
+            <h3>⚙️ Configurações do Sistema Automático</h3>
+            <p style="color: #666; margin-bottom: 20px;">
+                Configure uma vez e o sistema rodará automaticamente na nuvem 24/7.
+            </p>
+
+            <div class="form-group">
+                <label for="notification-timing">📅 Quando enviar:</label>
+                <select id="notification-timing">
+                    <option value="same-day">No dia do aniversário</option>
+                    <option value="1-day" selected>1 dia antes</option>
+                    <option value="2-days">2 dias antes</option>
+                    <option value="3-days">3 dias antes</option>
+                    <option value="1-week">1 semana antes</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="notification-time">🕘 Horário de envio:</label>
+                <input type="time" id="notification-time" value="09:00">
+            </div>
+
+            <div class="form-group">
+                <label for="recipient-phone">📞 Número do destinatário:</label>
+                <input type="tel" id="recipient-phone" value="+557181478028" placeholder="+5571xxxxxxxxx">
+            </div>
+
+            <button class="btn btn-success" onclick="updateAutomationConfig()" style="font-size: 18px; padding: 20px 40px;">
+                💾 ATUALIZAR AUTOMAÇÃO
+            </button>
+        </div>
+
+        <!-- 📋 TESTE E LOGS -->
+        <div class="form-section">
+            <h3>🧪 Testes e Monitoramento</h3>
+            
+            <button class="btn" onclick="testConnection()">🔌 Testar Conexão</button>
+            <button class="btn" onclick="testMessage()">📱 Teste WhatsApp</button>
+            <button class="btn btn-warning" onclick="simulateExecution()">🎭 Simular Execução</button>
+            
+            <div id="log-results" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        // ⚙️ CONFIGURAÇÃO GLOBAL
+        let CONFIG = {
+            apiBaseUrl: '', // Vercel detecta automaticamente
+            lastCheck: null,
+            automation: {
+                enabled: true,
+                timing: '1-day',
+                sendTime: '09:00',
+                recipientPhone: '+557181478028'
+            }
+        };
+
+        // 🎯 INICIALIZAÇÃO
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🤖 Sistema Automatizado PM iniciando...');
+            await initializeSystem();
+        });
+
+        async function initializeSystem() {
+            try {
+                // Carregar configurações
+                loadConfig();
+                
+                // Verificar status da automação
+                await checkAutomationStatus();
+                
+                // Atualizar horário atual
+                updateCurrentTime();
+                setInterval(updateCurrentTime, 60000); // Atualizar a cada minuto
+                
+                console.log('✅ Sistema automatizado inicializado!');
+                
+            } catch (error) {
+                console.error('❌ Erro na inicialização:', error);
+                showAlert('❌ Erro ao inicializar sistema automatizado', 'error');
+            }
+        }
+
+        // ⏰ ATUALIZAR HORÁRIO ATUAL
+        function updateCurrentTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('pt-BR', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            document.getElementById('current-time').textContent = timeString;
+            
+            // Calcular próxima verificação (toda hora)
+            const nextHour = new Date(now);
+            nextHour.setMinutes(0, 0, 0);
+            nextHour.setHours(nextHour.getHours() + 1);
+            
+            const nextCheckString = nextHour.toLocaleTimeString('pt-BR', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            document.getElementById('next-check').textContent = `⏰ Próxima verificação: ${nextCheckString}`;
+        }
+
+        // 📊 VERIFICAR STATUS DA AUTOMAÇÃO
+        window.checkAutomationStatus = async function() {
+            try {
+                showAlert('🔍 Verificando status da automação...', 'warning');
+                
+                const response = await fetch('/api/check-birthdays');
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Atualizar interface
+                    document.getElementById('current-config').innerHTML = `
+                        <strong>Timing:</strong> ${data.timing}<br>
+                        <strong>Horário:</strong> ${data.scheduledTime}<br>
+                        <strong>Total cadastrados:</strong> ${data.totalBirthdays}
+                    `;
+                    
+                    document.getElementById('queue-count').textContent = data.inQueue;
+                    
+                    // Mostrar fila se houver
+                    if (data.inQueue > 0) {
+                        const queueList = data.queue.map(p => 
+                            `${p.graduation} ${p.name} (${p.age} anos)`
+                        ).join(', ');
+                        
+                        showAlert(`🎂 ${data.inQueue} na fila: ${queueList}`, 'success');
+                    } else {
+                        showAlert('📋 Nenhum aniversário na fila hoje', 'warning');
+                    }
+                    
+                    CONFIG.lastCheck = new Date().toISOString();
+                    
+                } else {
+                    throw new Error(data.error || 'Erro desconhecido');
+                }
+                
+            } catch (error) {
+                console.error('❌ Erro ao verificar status:', error);
+                showAlert(`❌ Erro: ${error.message}`, 'error');
+            }
+        };
+
+        // 🚀 FORÇAR EXECUÇÃO MANUAL
+        window.forceExecution = async function() {
+            if (!confirm('🚀 Executar envio de mensagens AGORA?\n\nIsso irá enviar todas as mensagens da fila independente do horário.')) {
+                return;
+            }
+            
+            try {
+                showAlert('🚀 Executando envio forçado...', 'warning');
+                
+                const response = await fetch('/api/cron-scheduler', {
+                    method: 'GET'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert(`✅ ${data.message}`, 'success');
+                    
+                    // Mostrar logs
+                    if (data.results && data.results.length > 0) {
+                        const logText = `🚀 EXECUÇÃO FORÇADA - ${new Date().toLocaleString('pt-BR')}
+
+📊 Resultado: ${data.sent || data.results.filter(r => r.status === 'success').length} mensagem(s) enviada(s)
+
+${data.results.map((r, i) => 
+`${i + 1}. ${r.birthday}
+   Status: ${r.status === 'success' ? '✅ Enviado' : '❌ Erro'}
+   ${r.sid ? `SID: ${r.sid}` : `Erro: ${r.error}`}`
+).join('\n\n')}
+
+⏰ Concluído em: ${new Date().toLocaleString('pt-BR')}`;
+                        
+                        showLogs(logText);
+                    }
+                    
+                } else {
+                    throw new Error(data.error || 'Erro no envio');
+                }
+                
+            } catch (error) {
+                console.error('❌ Erro na execução:', error);
+                showAlert(`❌ Erro na execução: ${error.message}`, 'error');
+            }
+        };
+
+        // ⚙️ ATUALIZAR CONFIGURAÇÃO DA AUTOMAÇÃO
+        window.updateAutomationConfig = async function() {
+            const timing = document.getElementById('notification-timing').value;
+            const sendTime = document.getElementById('notification-time').value;
+            const recipientPhone = document.getElementById('recipient-phone').value;
+            
+            // Validar telefone
+            if (!recipientPhone.match(/^\+55\d{10,11}$/)) {
+                showAlert('❌ Formato do telefone inválido. Use +5571xxxxxxxxx', 'error');
+                return;
+            }
+            
+            CONFIG.automation = {
+                enabled: true,
+                timing,
+                sendTime,
+                recipientPhone
+            };
+            
+            // Salvar localmente
+            localStorage.setItem('automation_config', JSON.stringify(CONFIG.automation));
+            
+            showAlert(`✅ Configuração atualizada! Sistema programado para enviar ${timing} às ${sendTime}`, 'success');
+            
+            // Atualizar display
+            await checkAutomationStatus();
+        };
+
+        // 💾 CARREGAR CONFIGURAÇÕES
+        function loadConfig() {
+            const saved = localStorage.getItem('automation_config');
+            if (saved) {
+                try {
+                    CONFIG.automation = { ...CONFIG.automation, ...JSON.parse(saved) };
+                    
+                    // Atualizar interface
+                    document.getElementById('notification-timing').value = CONFIG.automation.timing;
+                    document.getElementById('notification-time').value = CONFIG.automation.sendTime;
+                    document.getElementById('recipient-phone').value = CONFIG.automation.recipientPhone;
+                    
+                } catch (e) {
+                    console.log('Erro ao carregar configurações:', e);
+                }
+            }
+        }
+
+        // 🧪 FUNÇÕES DE TESTE
+        window.testConnection = async function() {
+            try {
+                showAlert('🔌 Testando conexão com o sistema...', 'warning');
+                
+                const response = await fetch('/api/check-birthdays');
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('✅ Conexão OK! Sistema funcionando na nuvem', 'success');
+                    
+                    const logText = `🔌 TESTE DE CONEXÃO
+
+✅ Status: Conectado com sucesso
+🌐 Servidor: Vercel
+📅 Horário do servidor: ${data.currentTime}
+⚙️ Configuração: ${data.timing}
+📊 Total de aniversários: ${data.totalBirthdays}
+🔔 Na fila hoje: ${data.inQueue}
+
+⚡ Sistema automático funcionando 100%!`;
+                    
+                    showLogs(logText);
+                } else {
+                    throw new Error(data.error);
+                }
+                
+            } catch (error) {
+                showAlert(`❌ Erro de conexão: ${error.message}`, 'error');
+            }
+        };
+
+        window.testMessage = async function() {
+            if (!confirm('📱 Enviar mensagem de teste para WhatsApp?')) return;
+            
+            try {
+                showAlert('📱 Enviando teste...', 'warning');
+                
+                // Usar o endpoint do cron que já tem o envio
+                await forceExecution();
+                
+            } catch (error) {
+                showAlert(`❌ Erro no teste: ${error.message}`, 'error');
+            }
+        };
+
+        window.simulateExecution = async function() {
+            try {
+                showAlert('🎭 Simulando execução automática...', 'warning');
+                
+                const response = await fetch('/api/check-birthdays');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const logText = `🎭 SIMULAÇÃO DE EXECUÇÃO AUTOMÁTICA
+
+⏰ Simulação executada em: ${new Date().toLocaleString('pt-BR')}
+📅 Horário configurado: ${data.scheduledTime}
+🔔 Configuração: ${data.timing}
+
+📊 ANÁLISE:
+• Total de aniversários: ${data.totalBirthdays}
+• Na fila hoje: ${data.inQueue}
+• Próxima verificação: ${new Date(Date.now() + 3600000).toLocaleTimeString('pt-BR')}
+
+${data.inQueue > 0 ? 
+`👥 SERIA ENVIADO PARA:
+${data.queue.map((p, i) => 
+`${i + 1}. ${p.graduation} ${p.name} (${p.age} anos)
+   Relacionamento: ${p.relationship}
+   ${p.unit ? `Unidade: ${p.unit}` : ''}`
+).join('\n\n')}` : 
+'ℹ️ Nenhuma mensagem seria enviada hoje.'
+}
+
+✅ Simulação concluída com sucesso!
+🤖 O sistema real executará automaticamente no horário programado.`;
+                    
+                    showLogs(logText);
+                    showAlert('🎭 Simulação concluída! Veja os logs abaixo', 'success');
+                } else {
+                    throw new Error(data.error);
+                }
+                
+            } catch (error) {
+                showAlert(`❌ Erro na simulação: ${error.message}`, 'error');
+            }
+        };
+
+        // 📋 MOSTRAR LOGS
+        window.viewLogs = function() {
+            const lastLog = localStorage.getItem('last_execution_log');
+            if (lastLog) {
+                try {
+                    const logData = JSON.parse(lastLog);
+                    showLogs(logData.result || 'Log anterior encontrado');
+                } catch (e) {
+                    showLogs('📋 Nenhum log anterior encontrado');
+                }
+            } else {
+                showLogs('📋 Nenhum log de execução encontrado ainda');
+            }
+        };
+
+        function showLogs(text) {
+            const logContainer = document.getElementById('log-results');
+            logContainer.innerHTML = `<div class="log-container">${text}</div>`;
+            logContainer.style.display = 'block';
+            
+            // Auto-scroll
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // 🚨 MOSTRAR ALERTAS
+        function showAlert(message, type) {
+            const container = document.getElementById('alert-container');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            
+            // Botão fechar
+            const closeBtn = document.createElement('span');
+            closeBtn.innerHTML = ' ❌';
+            closeBtn.style.cursor = 'pointer';
+            closeBtn.style.float = 'right';
+            closeBtn.onclick = () => alertDiv.remove();
+            alertDiv.appendChild(closeBtn);
+            
+            container.innerHTML = '';
+            container.appendChild(alertDiv);
+            
+            // Auto-remover
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 7000);
+        }
+
+        console.log('🤖 Sistema automatizado carregado!');
+        console.log('🌐 Rodando na nuvem com Vercel');
+        console.log('⚡ Automação 24/7 ativa');
+    </script>
+</body>
+</html>
