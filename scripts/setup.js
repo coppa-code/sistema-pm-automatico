@@ -442,3 +442,16 @@ if (require.main === module) {
 }
 
 module.exports = { SystemSetup };
+
+
+// Quando implementar backend seguro:
+const API_URL = 'https://seu-backend.herokuapp.com/api/v1';
+
+async function sendSecureWhatsApp(birthdayData) {
+    const response = await fetch(`${API_URL}/send-notification`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(birthdayData)
+    });
+    return response.json();
+}
