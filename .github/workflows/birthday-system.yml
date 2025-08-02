@@ -1,1 +1,154 @@
 
+# .github/workflows/birthday-system.yml
+name: 🎂 Sistema Aniversários PM - Automático
+
+on:
+  # Executa a cada hora
+  schedule:
+    - cron: '0 * * * *'  # Todo início de hora
+  
+  # Permite execução manual
+  workflow_dispatch:
+    inputs:
+      test_mode:
+        description: 'Modo de teste (true/false)'
+        required: false
+        default: 'false'
+      force_send:
+        description: 'Forçar envio (true/false)'
+        required: false
+        default: 'false'
+
+  # Executa em push na main
+  push:
+    branches: [ main ]
+    paths: 
+      - 'scripts/**'
+      - '.github/workflows/**'
+
+jobs:
+  birthday-check:
+    name: 🔍 Verificar Aniversários PM
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout código
+      uses: actions/checkout@v4
+      
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: 📦 Instalar dependências
+      run: |
+        cd scripts
+        npm install
+        
+    - name: ⏰ Verificar horário brasileiro
+      run: |
+        echo "🇧🇷 Horário do Brasil:"
+        TZ=America/Sao_Paulo date
+        echo "🌍 Horário UTC:"
+        date
+        
+    - name: 🔍 Executar verificação automática
+      env:
+        FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+        FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+        TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+        TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
+        TWILIO_FROM_NUMBER: ${{ secrets.TWILIO_FROM_NUMBER }}
+        TWILIO_TO_NUMBER: ${{ secrets.TWILIO_TO_NUMBER }}
+        TEST_MODE: ${{ github.event.inputs.test_mode || 'false' }}
+        FORCE_SEND: ${{ github.event.inputs.force_send || 'false' }}
+      run: |
+        cd scripts
+        echo "🎖️ Iniciando verificação PM..."
+        node birthday-checker.js
+        
+    - name: 📊 Gerar relatório
+      if: always()
+      run: |
+        cd scripts
+        node generate-report.js
+        
+    - name: 📤 Commit logs (se houver mudanças)
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action PM"
+        
+        if [ -f "logs/execution-$(date +%Y-%m-%d).log" ]; then
+          git add logs/
+          git commit -m "📊 Log automático PM - $(TZ=America/Sao_Paulo date)" || exit 0
+          git push
+        fi
+
+  daily-report:
+    name: 📊 Relatório Diário PM
+    runs-on: ubuntu-latest
+    # Executa apenas às 8:00 BR (11:00 UTC)
+    if: github.event.schedule == '0 11 * * *' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+    - name: 📥 Checkout
+      uses: actions/checkout@v4
+      
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: 📦 Instalar dependências
+      run: |
+        cd scripts
+        npm install
+        
+    - name: 📊 Gerar relatório diário
+      env:
+        FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+        FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+        TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+        TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
+        TWILIO_FROM_NUMBER: ${{ secrets.TWILIO_FROM_NUMBER }}
+        TWILIO_TO_NUMBER: ${{ secrets.TWILIO_TO_NUMBER }}
+      run: |
+        cd scripts
+        echo "📊 Gerando relatório diário PM..."
+        node daily-report.js
+
+  health-check:
+    name: 🏥 Health Check Sistema
+    runs-on: ubuntu-latest
+    # Executa a cada 4 horas
+    if: github.event.schedule == '0 */4 * * *' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+    - name: 📥 Checkout
+      uses: actions/checkout@v4
+      
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: 📦 Instalar dependências
+      run: |
+        cd scripts
+        npm install
+        
+    - name: 🏥 Verificar saúde do sistema
+      env:
+        FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+        FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+        TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+        TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
+        TWILIO_FROM_NUMBER: ${{ secrets.TWILIO_FROM_NUMBER }}
+        TWILIO_TO_NUMBER: ${{ secrets.TWILIO_TO_NUMBER }}
+      run: |
+        cd scripts
+        echo "🏥 Verificando saúde do sistema..."
+        node health-check.js
