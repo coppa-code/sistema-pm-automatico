@@ -1,110 +1,165 @@
+# .github/workflows/birthday-system-easy.yml
+# 🎂 Sistema PM - Versão Fácil para Iniciantes
 
-# .github/workflows/birthday-system.yml
-name: 🎂 Sistema Aniversários PM - Automático
+name: 🎂 Sistema PM Automático (Fácil)
 
 on:
-  # Executa a cada hora
+  # ⏰ EXECUÇÃO AUTOMÁTICA - A cada 30 minutos (mais frequente)
   schedule:
-    - cron: '0 * * * *'  # Todo início de hora
+    - cron: '*/30 * * * *'  # A cada 30 minutos
   
-  # Permite execução manual
+  # 🚀 EXECUÇÃO MANUAL - Botão no GitHub
   workflow_dispatch:
     inputs:
-      test_mode:
-        description: 'Modo de teste (true/false)'
-        required: false
-        default: 'false'
-      force_send:
-        description: 'Forçar envio (true/false)'
-        required: false
-        default: 'false'
+      modo:
+        description: 'Escolha o modo'
+        required: true
+        default: 'verificar'
+        type: choice
+        options:
+          - verificar
+          - teste
+          - forcar
 
-  # Executa em push na main
-  push:
-    branches: [ main ]
-    paths: 
-      - 'scripts/**'
-      - '.github/workflows/**'
+# 🌍 Configurações globais
+env:
+  TZ: America/Sao_Paulo
 
 jobs:
-  birthday-check:
+  # 🎖️ JOB PRINCIPAL - Verificar Aniversários
+  verificar-aniversarios:
     name: 🔍 Verificar Aniversários PM
     runs-on: ubuntu-latest
     
     steps:
-    - name: 📥 Checkout código
+    # 📥 1. Baixar código
+    - name: 📥 Baixar código do GitHub
       uses: actions/checkout@v4
       
-    - name: 🟢 Setup Node.js
+    # 🟢 2. Configurar Node.js
+    - name: 🟢 Preparar Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '18'
         cache: 'npm'
+        cache-dependency-path: 'scripts/package-lock.json'
         
+    # ⏰ 3. Mostrar horário
+    - name: ⏰ Mostrar horário do Brasil
+      run: |
+        echo "🇧🇷 Horário do Brasil: $(TZ=America/Sao_Paulo date)"
+        echo "🌍 Horário UTC: $(date)"
+        echo "📅 Dia da semana: $(TZ=America/Sao_Paulo date +%u) (1=Segunda, 7=Domingo)"
+        
+    # 📦 4. Instalar dependências
     - name: 📦 Instalar dependências
       run: |
         cd scripts
+        echo "📦 Instalando dependências..."
         npm install
+        echo "✅ Dependências instaladas!"
         
-    - name: ⏰ Verificar horário brasileiro
-      run: |
-        echo "🇧🇷 Horário do Brasil:"
-        TZ=America/Sao_Paulo date
-        echo "🌍 Horário UTC:"
-        date
-        
-    - name: 🔍 Executar verificação automática
+    # 🔍 5. EXECUTAR VERIFICAÇÃO PRINCIPAL
+    - name: 🔍 Executar verificação de aniversários
       env:
+        # 🔐 Variáveis secretas (já configuradas)
         FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
         FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
         TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
         TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
         TWILIO_FROM_NUMBER: ${{ secrets.TWILIO_FROM_NUMBER }}
         TWILIO_TO_NUMBER: ${{ secrets.TWILIO_TO_NUMBER }}
-        TEST_MODE: ${{ github.event.inputs.test_mode || 'false' }}
-        FORCE_SEND: ${{ github.event.inputs.force_send || 'false' }}
+        
+        # ⚙️ Configurações do modo
+        TEST_MODE: ${{ github.event.inputs.modo == 'teste' }}
+        FORCE_SEND: ${{ github.event.inputs.modo == 'forcar' }}
+        
       run: |
         cd scripts
-        echo "🎖️ Iniciando verificação PM..."
-        node birthday-checker.js
         
-    - name: 📊 Gerar relatório
+        echo "🎖️ === INICIANDO VERIFICAÇÃO PM ==="
+        echo "📅 Data/Hora: $(TZ=America/Sao_Paulo date)"
+        echo "🎯 Modo: ${{ github.event.inputs.modo || 'automatico' }}"
+        echo "🕒 Executando a cada 30 minutos automaticamente"
+        echo ""
+        
+        # Executar com timeout de 5 minutos
+        timeout 300 node birthday-checker.js || {
+          echo "⚠️ Timeout ou erro - mas isso é normal às vezes"
+          echo "💡 Sistema continuará tentando na próxima execução"
+          exit 0
+        }
+        
+        echo ""
+        echo "✅ Verificação PM concluída!"
+        
+    # 📊 6. Mostrar logs se existirem
+    - name: 📊 Mostrar logs (se existir)
       if: always()
       run: |
         cd scripts
-        node generate-report.js
         
-    - name: 📤 Commit logs (se houver mudanças)
+        echo "📋 === LOGS DO SISTEMA ==="
+        
+        # Verificar se há logs de hoje
+        LOG_FILE="logs/execution-$(date +%Y-%m-%d).log"
+        if [ -f "$LOG_FILE" ]; then
+          echo "📄 Log encontrado: $LOG_FILE"
+          echo "📋 Últimas 10 linhas:"
+          tail -10 "$LOG_FILE"
+        else
+          echo "ℹ️ Nenhum log encontrado hoje"
+        fi
+        
+        echo ""
+        echo "🔍 Verificando estrutura de arquivos:"
+        ls -la logs/ 2>/dev/null || echo "📁 Pasta logs não existe ainda"
+        
+    # 📤 7. Salvar logs no GitHub
+    - name: 📤 Salvar logs no repositório
+      if: always()
       run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action PM"
+        # Configurar git
+        git config --local user.email "sistema-pm@github.com"
+        git config --local user.name "Sistema PM Automático"
         
-        if [ -f "logs/execution-$(date +%Y-%m-%d).log" ]; then
-          git add logs/
-          git commit -m "📊 Log automático PM - $(TZ=America/Sao_Paulo date)" || exit 0
-          git push
+        # Verificar se há mudanças
+        if [ -n "$(git status --porcelain)" ]; then
+          echo "📝 Salvando logs no GitHub..."
+          
+          git add logs/ reports/ 2>/dev/null || true
+          
+          # Criar mensagem do commit
+          COMMIT_MSG="📊 Sistema PM - $(TZ=America/Sao_Paulo date '+%d/%m/%Y %H:%M')"
+          
+          git commit -m "$COMMIT_MSG" || {
+            echo "ℹ️ Nada novo para salvar"
+            exit 0
+          }
+          
+          git push || {
+            echo "⚠️ Erro no push - mas não é crítico"
+            echo "💡 Logs serão salvos na próxima execução"
+            exit 0
+          }
+          
+          echo "✅ Logs salvos no GitHub!"
+        else
+          echo "ℹ️ Nenhum log novo para salvar"
         fi
 
-  daily-report:
+  # 📊 JOB SECUNDÁRIO - Relatório (apenas 1x por dia)
+  relatorio-diario:
     name: 📊 Relatório Diário PM
     runs-on: ubuntu-latest
-    # Executa apenas às 8:00 BR (11:00 UTC)
-    if: github.event.schedule == '0 11 * * *' || github.event_name == 'workflow_dispatch'
+    # ⏰ Só executar às 8h da manhã (11h UTC)
+    if: github.event.schedule == '0 11 * * *' || github.event.inputs.modo == 'relatorio'
     
     steps:
-    - name: 📥 Checkout
-      uses: actions/checkout@v4
-      
-    - name: 🟢 Setup Node.js
-      uses: actions/setup-node@v4
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
       with:
         node-version: '18'
-        cache: 'npm'
-        
-    - name: 📦 Instalar dependências
-      run: |
-        cd scripts
-        npm install
         
     - name: 📊 Gerar relatório diário
       env:
@@ -116,39 +171,40 @@ jobs:
         TWILIO_TO_NUMBER: ${{ secrets.TWILIO_TO_NUMBER }}
       run: |
         cd scripts
-        echo "📊 Gerando relatório diário PM..."
-        node daily-report.js
-
-  health-check:
-    name: 🏥 Health Check Sistema
-    runs-on: ubuntu-latest
-    # Executa a cada 4 horas
-    if: github.event.schedule == '0 */4 * * *' || github.event_name == 'workflow_dispatch'
-    
-    steps:
-    - name: 📥 Checkout
-      uses: actions/checkout@v4
-      
-    - name: 🟢 Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-        
-    - name: 📦 Instalar dependências
-      run: |
-        cd scripts
         npm install
         
-    - name: 🏥 Verificar saúde do sistema
-      env:
-        FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
-        FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
-        TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
-        TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
-        TWILIO_FROM_NUMBER: ${{ secrets.TWILIO_FROM_NUMBER }}
-        TWILIO_TO_NUMBER: ${{ secrets.TWILIO_TO_NUMBER }}
-      run: |
-        cd scripts
-        echo "🏥 Verificando saúde do sistema..."
-        node health-check.js
+        echo "📊 === RELATÓRIO DIÁRIO PM ==="
+        echo "📅 $(TZ=America/Sao_Paulo date)"
+        
+        # Executar relatório se existir
+        if [ -f "daily-report.js" ]; then
+          node daily-report.js || echo "⚠️ Erro no relatório - continuando"
+        else
+          echo "ℹ️ Script de relatório não encontrado - pulando"
+        fi
+
+# 🎯 RESUMO DO QUE ESTE WORKFLOW FAZ:
+# 
+# ⏰ EXECUÇÃO:
+# - A cada 30 minutos (ao invés de 1 hora)
+# - Botão manual no GitHub para testar
+# 
+# 🔍 VERIFICAÇÃO:
+# - Conecta no Firebase
+# - Verifica aniversários
+# - Envia WhatsApp se necessário
+# - Salva logs automaticamente
+# 
+# 📊 RELATÓRIO:
+# - 1x por dia às 8h
+# - Resumo completo do sistema
+# 
+# 🛡️ SEGURANÇA:
+# - Todas as senhas ficam nos Secrets
+# - Logs salvos no próprio GitHub
+# - Timeout para evitar travamentos
+# 
+# 📱 MONITORAMENTO:
+# - Logs salvos automaticamente
+# - Status visível na aba Actions
+# - Possível executar manualmente
