@@ -1,0 +1,35 @@
+{
+  "name": "sistema-aniversarios-pm",
+  "version": "1.0.0",
+  "description": "Sistema automático de aniversários da Polícia Militar com WhatsApp",
+  "main": "scripts/check-birthdays.js",
+  "scripts": {
+    "check": "node scripts/check-birthdays.js",
+    "test": "node scripts/check-birthdays.js --test",
+    "start": "echo 'Sistema funcionando via GitHub Actions'"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.0.0",
+    "node-fetch": "^2.7.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/seu-usuario/sistema-aniversarios-pm.git"
+  },
+  "keywords": [
+    "aniversarios",
+    "policia-militar",
+    "whatsapp",
+    "firebase",
+    "github-actions",
+    "automacao"
+  ],
+  "author": "Sua PM",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
