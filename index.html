@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎂 Sistema de Aniversários PM</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            padding: 20px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 2em;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1em;
+            font-weight: 500;
+        }
+
+        .system-status {
+            background: linear-gradient(135deg, #e8f5e8, #d4edda);
+            border: 2px solid #28a745;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .system-status.connecting {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border-color: #ffc107;
+        }
+
+        .system-status.error {
+            background: linear-gradient(135deg, #f8d7da, #fadbd8);
+            border-color: #dc3545;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 18px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            border-top: 4px solid #667eea;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-number {
+            font-size: 2.2em;
+            font-weight: 900;
+            color: #667eea;
+            margin-bottom: 5px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.8em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 2px solid #e9ecef;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .form-section h3 {
+            color: #495057;
+            margin-bottom: 18px;
+            font-size: 1.2em;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #495057;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+            font-weight: 500;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .graduation-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 3px 6px;
+            border-radius: 6px;
+            font-size: 0.7em;
+            font-weight: 700;
+            margin-right: 5px;
+            text-transform: uppercase;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            width: 100%;
+            touch-action: manipulation;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            padding: 8px 16px;
+            font-size: 12px;
+            width: auto;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+            width: auto;
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+
+        .birthday-item {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .birthday-item:hover {
+            transform: translateX(3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .birthday-item.today {
+            border-left-color: #ff6b6b;
+            background: linear-gradient(135deg, #fff5f5, #ffffff);
+            animation: pulse 2s infinite;
+        }
+
+        .birthday-item.tomorrow {
+            border-left-color: #ffa726;
+            background: linear-gradient(135deg, #fffbf0, #ffffff);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.01); }
+        }
+
+        .birthday-info h4 {
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .birthday-info p {
+            color: #666;
+            margin-bottom: 4px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+
+        .birthday-actions {
+            margin-top: 12px;
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .days-until {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-weight: 700;
+            font-size: 0.75em;
+            text-align: center;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+
+        .days-until.today {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            animation: shake 0.5s infinite;
+        }
+
+        .days-until.tomorrow {
+            background: linear-gradient(135deg, #ffa726 0%, #fb8c00 100%);
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-2px); }
+            75% { transform: translateX(2px); }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+            font-size: 1em;
+            font-weight: 600;
+        }
+
+        .loading::after {
+            content: "";
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            font-size: 0.9em;
+            border: 2px solid;
+            animation: slideInDown 0.5s ease;
+            position: relative;
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            color: #155724;
+            border-color: #c3e6cb;
+        }
+
+        .alert-error {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            color: #721c24;
+            border-color: #f5c6cb;
+        }
+
+        .alert-warning {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            color: #856404;
+            border-color: #ffeaa7;
+        }
+
+        .alert-close {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 15px;
+            color: #666;
+        }
+
+        .empty-state h3 {
+            font-size: 1.3em;
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .empty-state p {
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+
+        .actions-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .success-animation {
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        /* Otimizações para dispositivos móveis */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+                margin: 5px;
+                border-radius: 12px;
+            }
+
+            .header h1 {
+                font-size: 1.6em;
+            }
+
+            .header p {
+                font-size: 0.9em;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .stat-card {
+                padding: 12px;
+            }
+
+            .stat-number {
+                font-size: 1.8em;
+            }
+
+            .form-section {
+                padding: 15px;
+            }
+
+            .birthday-item {
+                padding: 12px;
+            }
+
+            .birthday-info h4 {
+                font-size: 1em;
+            }
+
+            .birthday-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                padding: 10px 16px;
+                font-size: 14px;
+            }
+        }
+
+        /* Melhorias para dispositivos touch */
+        @media (hover: none) and (pointer: coarse) {
+            .btn:hover {
+                transform: none;
+                box-shadow: none;
+            }
+
+            .birthday-item:hover {
+                transform: none;
+            }
+
+            .stat-card:hover {
+                transform: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🎂 Sistema de Aniversários PM</h1>
+            <p>Polícia Militar - Gestão de Aniversários</p>
+        </div>
+
+        <!-- Status do Sistema -->
+        <div id="system-status" class="system-status connecting">
+            <strong>🔄 Inicializando sistema...</strong>
+            <p>Conectando ao Firebase...</p>
+        </div>
+
+        <!-- Alertas -->
+        <div id="alert-container"></div>
+
+        <!-- Estatísticas -->
+        <div class="stats" id="stats-container">
+            <div class="stat-card">
+                <div class="stat-number" id="total-birthdays">-</div>
+                <div class="stat-label">Total Cadastrados</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="this-month">-</div>
+                <div class="stat-label">Este Mês</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="today-tomorrow">-</div>
+                <div class="stat-label">Hoje/Amanhã</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="next-week">-</div>
+                <div class="stat-label">Próximos 7 dias</div>
+            </div>
+        </div>
+
+        <!-- Formulário de Cadastro -->
+        <div class="form-section">
+            <h3>➕ Cadastrar Novo Aniversário</h3>
+            <form id="birthday-form">
+                <div class="form-group">
+                    <label for="graduation">🎖️ Graduação:</label>
+                    <select id="graduation" name="graduation" required>
+                        <option value="">Selecione a graduação...</option>
+                        <option value="Cmt Geral PM">🌟 Cmt Geral PM</option>
+                        <option value="Cel PM">🎖️ Cel PM</option>
+                        <option value="Ten Cel PM">🎖️ Ten Cel PM</option>
+                        <option value="Maj PM">🎖️ Maj PM</option>
+                        <option value="Cap PM">🎖️ Cap PM</option>
+                        <option value="Ten PM">⭐ Ten PM</option>
+                        <option value="St PM">🔸 St PM</option>
+                        <option value="Sgt PM">🔸 Sgt PM</option>
+                        <option value="Cb PM">🔹 Cb PM</option>
+                        <option value="Sd PM">🔹 Sd PM</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="name">👤 Nome Completo:</label>
+                    <input type="text" id="name" name="name" required placeholder="Digite o nome completo..." autocomplete="name">
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">📱 WhatsApp:</label>
+                    <input type="tel" id="phone" name="phone" required placeholder="+5571xxxxxxxxx" autocomplete="tel">
+                </div>
+                
+                <div class="form-group">
+                    <label for="date">📅 Data de Nascimento:</label>
+                    <input type="date" id="date" name="date" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="relationship">👥 Relacionamento:</label>
+                    <select id="relationship" name="relationship" required>
+                        <option value="">Selecione o tipo...</option>
+                        <option value="Comando">🎖️ Comando</option>
+                        <option value="Colega de Trabalho">👥 Colega de Trabalho</option>
+                        <option value="Subordinado">📋 Subordinado</option>
+                        <option value="Superior">⭐ Superior</option>
+                        <option value="Família">👨‍👩‍👧‍👦 Família</option>
+                        <option value="Amigo">🤝 Amigo(a)</option>
+                        <option value="Outro">📝 Outro</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="unit">🏢 Unidade/Setor:</label>
+                    <input type="text" id="unit" name="unit" placeholder="Ex: 1º BPM, COPOM, etc..." autocomplete="organization">
+                </div>
+                
+                <button type="submit" class="btn">✨ Cadastrar Aniversário</button>
+                <button type="button" class="btn btn-secondary" onclick="clearForm()">🧹 Limpar</button>
+            </form>
+        </div>
+
+        <!-- Lista de Aniversários -->
+        <div class="form-section">
+            <h3>📋 Aniversários Cadastrados</h3>
+            
+            <div class="actions-bar">
+                <button class="btn btn-secondary" onclick="loadBirthdays()">🔄 Atualizar</button>
+                <button class="btn btn-secondary" onclick="showUpcoming()">📅 Próximos</button>
+                <button class="btn btn-secondary" onclick="exportBirthdays()">📤 Exportar</button>
+            </div>
+
+            <div id="birthdays-container" class="loading">
+                Carregando aniversários...
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Firebase imports
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, updateDoc } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
+
+        // Configuração
+        const CONFIG = {
+            firebase: {
+                apiKey: "AIzaSyACqmiKFVEbm-P1tCVmYXl-B5a-wum2XPQ",
+                authDomain: "aniversario-dcdd8.firebaseapp.com",
+                projectId: "aniversario-dcdd8",
+                storageBucket: "aniversario-dcdd8.firebasestorage.app",
+                messagingSenderId: "848233635514",
+                appId: "1:848233635514:web:352f8de44f58ca86f7ec83",
+                measurementId: "G-V8LDP9V7M1"
+            },
+            app: null,
+            db: null,
+            birthdays: []
+        };
+
+        // Inicialização do sistema
+        async function initializeSystem() {
+            try {
+                showSystemStatus('connecting', '🔄 Inicializando...', 'Conectando Firebase...');
+                
+                CONFIG.app = initializeApp(CONFIG.firebase);
+                CONFIG.db = getFirestore(CONFIG.app);
+                
+                await testFirebaseConnection();
+                
+                showSystemStatus('success', '✅ Sistema Online!', 'Firebase conectado • Sistema pronto!');
+                
+                await loadBirthdays();
+                setupEventListeners();
+                
+                console.log('🎂 Sistema PM inicializado com sucesso!');
+                
+            } catch (error) {
+                console.error('❌ Erro na inicialização:', error);
+                showSystemStatus('error', '❌ Erro!', `Falha: ${error.message}`);
+            }
+        }
+
+        async function testFirebaseConnection() {
+            await getDocs(query(collection(CONFIG.db, 'birthdays'), orderBy('createdAt', 'desc')));
+            return true;
+        }
+
+        function showSystemStatus(type, title, message) {
+            const statusEl = document.getElementById('system-status');
+            statusEl.className = `system-status ${type}`;
+            statusEl.innerHTML = `<strong>${title}</strong><p>${message}</p>`;
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusEl.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        function setupEventListeners() {
+            const form = document.getElementById('birthday-form');
+            form.addEventListener('submit', handleAddBirthday);
+            
+            const phoneInput = document.getElementById('phone');
+            phoneInput.addEventListener('input', formatPhoneNumber);
+        }
+
+        function formatPhoneNumber(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            
+            if (value && !value.startsWith('55')) {
+                value = '55' + value;
+            }
+            
+            if (value) {
+                e.target.value = '+' + value;
+            }
+        }
+
+        async function handleAddBirthday(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const birthdayData = {
+                graduation: formData.get('graduation'),
+                name: formData.get('name').trim(),
+                phone: formData.get('phone').replace(/\D/g, '').replace(/^(\d{2})/, '+$1'),
+                date: formData.get('date'),
+                relationship: formData.get('relationship'),
+                unit: formData.get('unit')?.trim() || '',
+                createdAt: new Date().toISOString(),
+                createdBy: 'web-interface',
+                lastUpdated: new Date().toISOString()
+            };
+
+            if (!validateBirthdayData(birthdayData)) return;
+
+            const duplicate = CONFIG.birthdays.find(b => 
+                b.name.toLowerCase() === birthdayData.name.toLowerCase() ||
+                b.phone === birthdayData.phone
+            );
+
+            if (duplicate) {
+                if (!confirm(`⚠️ Já existe um cadastro para "${duplicate.name}" ou com este telefone. Continuar mesmo assim?`)) {
+                    return;
+                }
+            }
+
+            try {
+                showAlert('🔄 Cadastrando...', 'warning');
+                
+                await addDoc(collection(CONFIG.db, 'birthdays'), birthdayData);
+                
+                showAlert(`✅ ${birthdayData.graduation} ${birthdayData.name} cadastrado com sucesso!`, 'success');
+                
+                e.target.classList.add('success-animation');
+                setTimeout(() => e.target.classList.remove('success-animation'), 500);
+                
+                e.target.reset();
+                await loadBirthdays();
+                
+                document.getElementById('graduation').focus();
+                
+            } catch (error) {
+                console.error('❌ Erro ao cadastrar:', error);
+                showAlert(`❌ Erro ao cadastrar: ${error.message}`, 'error');
+            }
+        }
+
+        function validateBirthdayData(data) {
+            const phoneRegex = /^\+55\d{10,11}$/;
+            if (!phoneRegex.test(data.phone)) {
+                showAlert('❌ Formato de telefone inválido. Use +5571xxxxxxxxx', 'error');
+                return false;
+            }
+            
+            const birthDate = new Date(data.date);
+            const today = new Date();
+            const minDate = new Date();
+            minDate.setFullYear(today.getFullYear() - 120);
+            
+            if (birthDate > today) {
+                showAlert('❌ Data de nascimento não pode ser futura', 'error');
+                return false;
+            }
+            
+            if (birthDate < minDate) {
+                showAlert('❌ Data de nascimento muito antiga (máximo 120 anos)', 'error');
+                return false;
+            }
+            
+            if (data.name.length < 2) {
+                showAlert('❌ Nome deve ter pelo menos 2 caracteres', 'error');
+                return false;
+            }
+            
+            return true;
+        }
+
+        async function loadBirthdays() {
+            try {
+                const container = document.getElementById('birthdays-container');
+                container.innerHTML = '<div class="loading">Carregando aniversários...</div>';
+                
+                const q = query(collection(CONFIG.db, 'birthdays'), orderBy('createdAt', 'desc'));
+                const querySnapshot = await getDocs(q);
+                
+                CONFIG.birthdays = [];
+                querySnapshot.forEach((doc) => {
+                    CONFIG.birthdays.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+
+                updateStats();
+                renderBirthdays();
+                
+                console.log(`📋 ${CONFIG.birthdays.length} aniversários carregados`);
+                
+            } catch (error) {
+                console.error('❌ Erro ao carregar:', error);
+                document.getElementById('birthdays-container').innerHTML = `
+                    <div class="empty-state">
+                        <h3>❌ Erro ao carregar</h3>
+                        <p>Erro: ${error.message}</p>
+                        <button class="btn" onclick="loadBirthdays()">🔄 Tentar Novamente</button>
+                    </div>
+                `;
+            }
+        }
+
+        function updateStats() {
+            const today = new Date();
+            const currentMonth = today.getMonth();
+            
+            const thisMonth = CONFIG.birthdays.filter(birthday => {
+                const birthdayDate = new Date(birthday.date + 'T00:00:00');
+                return birthdayDate.getMonth() === currentMonth;
+            }).length;
+
+            const todayTomorrow = CONFIG.birthdays.filter(birthday => {
+                const days = calculateDaysUntilBirthday(birthday.date);
+                return days === 0 || days === 1;
+            }).length;
+
+            const nextWeek = CONFIG.birthdays.filter(birthday => {
+                const days = calculateDaysUntilBirthday(birthday.date);
+                return days >= 0 && days <= 7;
+            }).length;
+
+            animateNumber('total-birthdays', CONFIG.birthdays.length);
+            animateNumber('this-month', thisMonth);
+            animateNumber('today-tomorrow', todayTomorrow);
+            animateNumber('next-week', nextWeek);
+        }
+
+        function animateNumber(elementId, targetValue) {
+            const element = document.getElementById(elementId);
+            const currentValue = parseInt(element.textContent) || 0;
+            const increment = targetValue > currentValue ? 1 : -1;
+            const duration = 50;
+            
+            if (currentValue !== targetValue) {
+                let current = currentValue;
+                const timer = setInterval(() => {
+                    current += increment;
+                    element.textContent = current;
+                    
+                    if (current === targetValue) {
+                        clearInterval(timer);
+                    }
+                }, duration);
+            }
+        }
+
+        function renderBirthdays() {
+            const container = document.getElementById('birthdays-container');
+            
+            if (CONFIG.birthdays.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state fade-in">
+                        <h3>📝 Nenhum aniversário cadastrado</h3>
+                        <p>Cadastre o primeiro aniversário da PM para começar!</p>
+                        <button class="btn" onclick="document.getElementById('graduation').focus()">
+                            ➕ Cadastrar Primeiro
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            const sortedBirthdays = [...CONFIG.birthdays].sort((a, b) => {
+                const daysA = calculateDaysUntilBirthday(a.date);
+                const daysB = calculateDaysUntilBirthday(b.date);
+                return daysA - daysB;
+            });
+
+            const birthdaysHTML = sortedBirthdays.map(birthday => {
+                                const daysUntilBirthday = calculateDaysUntilBirthday(birthday.date);
+                const birthdayDate = new Date(birthday.date + 'T00:00:00');
+                const formattedDate = birthdayDate.toLocaleDateString('pt-BR');
+                
+                let itemClass = 'birthday-item fade-in';
+                let daysClass = 'days-until';
+                let daysText = '';
+                
+                if (daysUntilBirthday === 0) {
+                    itemClass += ' today';
+                    daysClass += ' today';
+                    daysText = '🎉 HOJE!';
+                } else if (daysUntilBirthday === 1) {
+                    itemClass += ' tomorrow';
+                    daysClass += ' tomorrow';
+                    daysText = '🎂 Amanhã';
+                } else if (daysUntilBirthday > 1) {
+                    daysText = `📅 ${daysUntilBirthday} dias`;
+                } else {
+                    daysText = `📅 ${365 + daysUntilBirthday} dias`;
+                }
+
+                return `
+                    <div class="${itemClass}">
+                        <div class="birthday-info">
+                            <h4>
+                                <span class="graduation-badge">${birthday.graduation}</span>
+                                ${birthday.name}
+                            </h4>
+                            <div class="${daysClass}">${daysText}</div>
+                            <p><strong>📅 Nascimento:</strong> ${formattedDate}</p>
+                            <p><strong>📱 WhatsApp:</strong> ${birthday.phone}</p>
+                            <p><strong>👥 Relacionamento:</strong> ${birthday.relationship}</p>
+                            ${birthday.unit ? `<p><strong>🏢 Unidade:</strong> ${birthday.unit}</p>` : ''}
+                            <div class="birthday-actions">
+                                <button class="btn btn-danger" onclick="deleteBirthday('${birthday.id}', '${birthday.name}')">
+                                    🗑️ Excluir
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = birthdaysHTML;
+        }
+
+        function calculateDaysUntilBirthday(birthDateString) {
+            const today = new Date();
+            const currentYear = today.getFullYear();
+            const birthDate = new Date(birthDateString + 'T00:00:00');
+            
+            let nextBirthday = new Date(currentYear, birthDate.getMonth(), birthDate.getDate());
+            
+            if (nextBirthday < today) {
+                nextBirthday.setFullYear(currentYear + 1);
+            }
+            
+            const timeDiff = nextBirthday.getTime() - today.getTime();
+            return Math.ceil(timeDiff / (1000 * 3600 * 24));
+        }
+
+        async function deleteBirthday(id, name) {
+            if (!confirm(`❌ Tem certeza que deseja excluir o aniversário de ${name}?`)) {
+                return;
+            }
+
+            try {
+                showAlert('🔄 Excluindo...', 'warning');
+                
+                await deleteDoc(doc(CONFIG.db, 'birthdays', id));
+                
+                showAlert(`✅ Aniversário de ${name} excluído com sucesso!`, 'success');
+                
+                await loadBirthdays();
+                
+            } catch (error) {
+                console.error('❌ Erro ao excluir:', error);
+                showAlert(`❌ Erro ao excluir: ${error.message}`, 'error');
+            }
+        }
+
+        function showAlert(message, type) {
+            const container = document.getElementById('alert-container');
+            const alertId = 'alert-' + Date.now();
+            
+            const alertHTML = `
+                <div id="${alertId}" class="alert alert-${type}">
+                    ${message}
+                    <span class="alert-close" onclick="closeAlert('${alertId}')">&times;</span>
+                </div>
+            `;
+            
+            container.insertAdjacentHTML('beforeend', alertHTML);
+            
+            if (type === 'success' || type === 'warning') {
+                setTimeout(() => {
+                    closeAlert(alertId);
+                }, 4000);
+            }
+        }
+
+        function closeAlert(alertId) {
+            const alert = document.getElementById(alertId);
+            if (alert) {
+                alert.style.opacity = '0';
+                alert.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    alert.remove();
+                }, 300);
+            }
+        }
+
+        function clearForm() {
+            document.getElementById('birthday-form').reset();
+            document.getElementById('graduation').focus();
+            showAlert('🧹 Formulário limpo!', 'success');
+        }
+
+        function showUpcoming() {
+            const upcomingBirthdays = CONFIG.birthdays.filter(birthday => {
+                const days = calculateDaysUntilBirthday(birthday.date);
+                return days >= 0 && days <= 30;
+            }).sort((a, b) => {
+                const daysA = calculateDaysUntilBirthday(a.date);
+                const daysB = calculateDaysUntilBirthday(b.date);
+                return daysA - daysB;
+            });
+
+            if (upcomingBirthdays.length === 0) {
+                showAlert('📅 Nenhum aniversário nos próximos 30 dias', 'warning');
+                return;
+            }
+
+            const container = document.getElementById('birthdays-container');
+            const birthdaysHTML = upcomingBirthdays.map(birthday => {
+                const daysUntilBirthday = calculateDaysUntilBirthday(birthday.date);
+                const birthdayDate = new Date(birthday.date + 'T00:00:00');
+                const formattedDate = birthdayDate.toLocaleDateString('pt-BR');
+                
+                let itemClass = 'birthday-item fade-in';
+                let daysClass = 'days-until';
+                let daysText = '';
+                
+                if (daysUntilBirthday === 0) {
+                    itemClass += ' today';
+                    daysClass += ' today';
+                    daysText = '🎉 HOJE!';
+                } else if (daysUntilBirthday === 1) {
+                    itemClass += ' tomorrow';
+                    daysClass += ' tomorrow';
+                    daysText = '🎂 Amanhã';
+                } else {
+                    daysText = `📅 ${daysUntilBirthday} dias`;
+                }
+
+                return `
+                    <div class="${itemClass}">
+                        <div class="birthday-info">
+                            <h4>
+                                <span class="graduation-badge">${birthday.graduation}</span>
+                                ${birthday.name}
+                            </h4>
+                            <div class="${daysClass}">${daysText}</div>
+                            <p><strong>📅 Nascimento:</strong> ${formattedDate}</p>
+                            <p><strong>📱 WhatsApp:</strong> ${birthday.phone}</p>
+                            <p><strong>👥 Relacionamento:</strong> ${birthday.relationship}</p>
+                            ${birthday.unit ? `<p><strong>🏢 Unidade:</strong> ${birthday.unit}</p>` : ''}
+                            <div class="birthday-actions">
+                                <button class="btn btn-danger" onclick="deleteBirthday('${birthday.id}', '${birthday.name}')">
+                                    🗑️ Excluir
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = `
+                <div style="text-align: center; margin-bottom: 15px; padding: 10px; background: #e3f2fd; border-radius: 10px; color: #1976d2; font-weight: 600;">
+                    📅 Próximos 30 dias (${upcomingBirthdays.length} aniversários)
+                </div>
+                ${birthdaysHTML}
+            `;
+
+            showAlert(`📅 Exibindo ${upcomingBirthdays.length} aniversários dos próximos 30 dias`, 'success');
+        }
+
+        function exportBirthdays() {
+            if (CONFIG.birthdays.length === 0) {
+                showAlert('❌ Nenhum aniversário para exportar', 'error');
+                return;
+            }
+
+            const csvContent = generateCSV();
+            downloadCSV(csvContent, 'aniversarios_pm.csv');
+            showAlert(`📤 ${CONFIG.birthdays.length} aniversários exportados com sucesso!`, 'success');
+        }
+
+        function generateCSV() {
+            const headers = ['Graduação', 'Nome', 'Telefone', 'Data Nascimento', 'Relacionamento', 'Unidade', 'Dias até Aniversário'];
+            
+            const rows = CONFIG.birthdays.map(birthday => {
+                const daysUntil = calculateDaysUntilBirthday(birthday.date);
+                const birthdayDate = new Date(birthday.date + 'T00:00:00');
+                const formattedDate = birthdayDate.toLocaleDateString('pt-BR');
+                
+                return [
+                    birthday.graduation,
+                    birthday.name,
+                    birthday.phone,
+                    formattedDate,
+                    birthday.relationship,
+                    birthday.unit || '',
+                    daysUntil === 0 ? 'HOJE' : daysUntil === 1 ? 'AMANHÃ' : `${daysUntil} dias`
+                ];
+            });
+
+            const csvContent = [headers, ...rows]
+                .map(row => row.map(field => `"${field}"`).join(','))
+                .join('\n');
+
+            return csvContent;
+        }
+
+        function downloadCSV(content, filename) {
+            const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+
+        // Funções globais para uso nos botões
+        window.loadBirthdays = loadBirthdays;
+        window.showUpcoming = showUpcoming;
+        window.exportBirthdays = exportBirthdays;
+        window.deleteBirthday = deleteBirthday;
+        window.clearForm = clearForm;
+        window.closeAlert = closeAlert;
+
+        // Inicializar o sistema quando a página carregar
+        document.addEventListener('DOMContentLoaded', initializeSystem);
+    </script>
+</body>
+</html>
